@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Metal Zone - Premium RC Cars, Metal Cars & Hot Wheels{% endblock %}
+{% block meta_description %}Welcome to Metal Zone - Your premier destination for premium RC Cars, Metal Cars, and Hot Wheels collections in India. Shop authentic collectibles and remote-controlled vehicles.{% endblock %}
+{% block meta_keywords %}RC cars, metal cars, Hot Wheels, collectibles, die-cast models, remote control cars, India, buy online{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <div class="hero-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+            <div>
+                <p class="eyebrow">Premium RC Cars, Metal Cars & Hot Wheels</p>
+                <h1>Welcome to <span class="highlight">Metal Zone</span></h1>
+                <p style="font-size: 1.1rem; margin-bottom: 2rem; color: #555;">Discover the ultimate collection of Hot Wheels, RC cars, and premium metal toy vehicles. From classic die-cast to high-speed remote control racers, we have everything for collectors and enthusiasts.</p>
+                <div class="hero-actions">
+                    <a href="{{ url_for('products') }}" class="btn primary">Browse Products</a>
+                    <a href="{{ url_for('about') }}" class="btn ghost">Learn More</a>
+                </div>
+                <div class="trust-pills">
+                    <span class="pill"><i class="fa-solid fa-check"></i> Premium Quality</span>
+                    <span class="pill"><i class="fa-solid fa-check"></i> Fast Shipping</span>
+                    <span class="pill"><i class="fa-solid fa-check"></i> Expert Support</span>
+                </div>
+            </div>
+            <div>
+                <img src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1200&q=80" alt="Metal Zone Collection" style="border-radius: 20px; box-shadow: 0 20px 60px rgba(223, 46, 126, 0.3);">
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if trending %}
+<section class="section">
+    <div class="container">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;">
+            <div>
+                <p class="eyebrow">Trending Now</p>
+                <h2 style="font-size: 2rem; margin: 0.5rem 0;">Most Popular Products</h2>
+            </div>
+            <a href="{{ url_for('products', sort='popular') }}" class="link-arrow" style="color: #df2e7e; font-weight: 600;">View All <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div class="grid cards-4">
+            {% for product in trending %}
+                <article class="product-card">
+                    <div class="card-badges">
+                        {% if product.stock <= 10 and product.stock > 0 %}
+                            <span class="badge-tag low">Only {{ product.stock }} left!</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}">
+                        <div class="product-media">
+                            <img src="{{ product.image|fix_image }}" alt="{{ product.name }}" loading="lazy">
+                        </div>
+                    </a>
+                    <div class="product-body">
+                        <p class="category">{{ product.category }} · {{ product.brand }}</p>
+                        <h3><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a></h3>
+                        <div class="price-row">
+                            <span class="price">{{ product.price|rupee }}</span>
+                            {% if product.mrp and product.mrp > product.price %}
+                                <span class="mrp">{{ product.mrp|rupee }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <a class="btn ghost" href="{{ url_for('product_detail', product_id=product.id) }}">View</a>
+                        {% if product.stock > 0 %}
+                            <form action="{{ url_for('cart_add', product_id=product.id) }}" method="POST" style="flex: 1;">
+                                <button class="btn primary" type="submit" style="width: 100%;">Add</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if blogs %}
+<section class="section">
+    <div class="container">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;">
+            <div>
+                <p class="eyebrow">Latest from Our Blog</p>
+                <h2 style="font-size: 2rem; margin: 0.5rem 0;">Stories & Guides</h2>
+            </div>
+            <a href="{{ url_for('blog_listing') }}" class="link-arrow" style="color: #df2e7e; font-weight: 600;">Read All <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div class="grid cards-3">
+            {% for post in blogs %}
+                <article class="blog-card" style="background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
+                    <a href="{{ url_for('blog_detail', slug=post.slug) }}">
+                        <img src="{{ post.hero_image|fix_image }}" alt="{{ post.title }}" style="width: 100%; height: 200px; object-fit: cover;" loading="lazy">
+                    </a>
+                    <div style="padding: 1.5rem;">
+                        <p class="eyebrow" style="font-size: 0.7rem;">{{ post.created_at.strftime('%b %d, %Y') }}</p>
+                        <h3 style="margin: 0.5rem 0 1rem; font-size: 1.2rem;"><a href="{{ url_for('blog_detail', slug=post.slug) }}">{{ post.title }}</a></h3>
+                        <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">{{ post.headline }}</p>
+                        <a class="link-arrow" href="{{ url_for('blog_detail', slug=post.slug) }}" style="color: #df2e7e; font-weight: 600;">Read Article <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}My Wishlist - Metal Zone{% endblock %}
+{% block meta_description %}View your saved products and wishlist at Metal Zone. Add items to cart or remove from wishlist.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block content %}
+<section class="section" style="background: #f9f9f9; padding: 2rem 0;">
+    <div class="container narrow center">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">My Wishlist</h1>
+        <p>Your saved products</p>
+    </div>
+</section>
+
+<section class="section dark">
+    <div class="container">
+        {% if items %}
+            <div class="grid cards-3">
+                {% for item in items %}
+                    <article class="product-card">
+                        <div class="card-badges">
+                            {% if item.product.featured %}
+                                <span class="badge-tag">★ Featured</span>
+                            {% endif %}
+                            {% if item.product.stock <= 10 and item.product.stock > 0 %}
+                                <span class="badge-tag low">Only {{ item.product.stock }} left!</span>
+                            {% elif item.product.stock == 0 %}
+                                <span class="badge-tag low">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('product_detail', product_id=item.product.id) }}">
+                            <div class="product-media">
+                                <img src="{{ item.product.image|fix_image }}" alt="{{ item.product.name }}" loading="lazy">
+                            </div>
+                        </a>
+                        <div class="product-body">
+                            <p class="category">{{ item.product.category }} · {{ item.product.brand }}</p>
+                            <h3><a href="{{ url_for('product_detail', product_id=item.product.id) }}">{{ item.product.name }}</a></h3>
+                            <div class="price-row">
+                                <span class="price">{{ item.product.price|rupee }}</span>
+                                {% if item.product.mrp and item.product.mrp > item.product.price %}
+                                    <span class="mrp">{{ item.product.mrp|rupee }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="product-actions">
+                            <a class="btn ghost" href="{{ url_for('product_detail', product_id=item.product.id) }}">View</a>
+                            {% if item.product.stock > 0 %}
+                                <form action="{{ url_for('cart_add', product_id=item.product.id) }}" method="POST" style="flex: 1;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button class="btn primary" type="submit" style="width: 100%;">Add to Cart</button>
+                                </form>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('wishlist_remove', product_id=item.product.id) }}" style="margin: 0;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn ghost" style="color: var(--danger); padding: 0.85rem 1rem;" title="Remove from wishlist">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <i class="fa-solid fa-heart" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                <h2 style="margin-bottom: 1rem;">Your wishlist is empty</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Start adding products to your wishlist!</p>
+                <a href="{{ url_for('products') }}" class="btn primary">Browse Products</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

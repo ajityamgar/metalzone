@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }} - Metal Zone Blog{% endblock %}
+{% block meta_description %}{{ post.meta_description or post.headline }}{% endblock %}
+{% block meta_keywords %}{{ post.meta_keywords or 'Metal Zone, blog, RC cars, collectibles' }}{% endblock %}
+{% block og_title %}{{ post.title }}{% endblock %}
+{% block og_description %}{{ post.headline }}{% endblock %}
+{% block content %}
+<section class="section" style="background: #f9f9f9; padding: 2rem 0;">
+    <div class="container narrow center">
+        <p class="eyebrow">{{ post.created_at.strftime('%B %d, %Y') }}</p>
+        <h1 style="font-size: 2.5rem; margin: 1rem 0;">{{ post.title }}</h1>
+        <p style="font-size: 1.1rem; color: #666;">{{ post.headline }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width: 800px;">
+        <img src="{{ post.hero_image|fix_image }}" alt="{{ post.title }}" style="width: 100%; border-radius: 20px; margin-bottom: 2rem;">
+        <div style="background: white; padding: 3rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <div style="white-space: pre-line; line-height: 1.8; font-size: 1.1rem; color: #555;">{{ post.content }}</div>
+            {% if post.author %}
+                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee;">
+                    <p style="color: #666;"><strong>Author:</strong> {{ post.author }}</p>
+                </div>
+            {% endif %}
+        </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{{ url_for('blog_listing') }}" class="btn ghost">← Back to Blog</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

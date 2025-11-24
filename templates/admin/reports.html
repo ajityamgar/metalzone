@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Reports - Admin{% endblock %}
+{% block content %}
+
+<div class="admin-header">
+    <div class="container">
+        <h1 style="margin: 0 0 1rem;">Sales Reports</h1>
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin_products') }}">Products</a>
+            <a href="{{ url_for('admin_orders') }}">Orders</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_blog') }}">Blog</a>
+            <a href="{{ url_for('admin_coupons') }}">Coupons</a>
+            <a href="{{ url_for('admin_reviews') }}">Reviews</a>
+            <a href="{{ url_for('admin_messages') }}">Messages</a>
+            <a href="{{ url_for('admin_reports') }}" class="active">Reports</a>
+        </nav>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Period Filters -->
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_reports', period='day') }}"
+               class="btn {% if period == 'day' %}primary{% else %}ghost{% endif %}">
+               Today
+            </a>
+
+            <a href="{{ url_for('admin_reports', period='week') }}"
+               class="btn {% if period == 'week' %}primary{% else %}ghost{% endif %}">
+               Last 7 Days
+            </a>
+
+            <a href="{{ url_for('admin_reports', period='month') }}"
+               class="btn {% if period == 'month' %}primary{% else %}ghost{% endif %}">
+               Last 30 Days
+            </a>
+
+            <a href="{{ url_for('admin_reports', period='year') }}"
+               class="btn {% if period == 'year' %}primary{% else %}ghost{% endif %}">
+               Last Year
+            </a>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="stats-grid" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <div class="value">{{ stats.total_orders }}</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="value">{{ stats.total_revenue | int_rupee }}</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Items Sold</h3>
+                <div class="value">{{ stats.total_items_sold }}</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Average Order Value</h3>
+                <div class="value">{{ stats.average_order_value | int_rupee }}</div>
+            </div>
+        </div>
+
+        <!-- Top Selling Products -->
+        <div class="panel" style="background: white; padding: 2rem; border-radius: 15px;
+                                 box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+
+            <h2 style="margin-bottom: 1.5rem;">Top Selling Products</h2>
+
+            {% if top_products %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr>
+                            <td><strong>{{ product.name }}</strong></td>
+                            <td>{{ product.quantity }}</td>
+                            <td>{{ product.revenue | int_rupee }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 2rem;">
+                    No sales data available for this period.
+                </p>
+            {% endif %}
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

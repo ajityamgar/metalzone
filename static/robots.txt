@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /profile
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /addresses
+Disallow: /static/uploads/
+
+Sitemap: http://localhost:5000/sitemap.xml
+

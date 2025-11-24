@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.order_number }} - Metal Zone{% endblock %}
+{% block content %}
+<section class="section" style="background: #f9f9f9; padding: 2rem 0;">
+    <div class="container narrow center">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Order Details</h1>
+        <p>Order #{{ order.order_number }}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width: 900px;">
+        <div class="panel" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2 style="margin: 0 0 0.5rem;">Order #{{ order.order_number }}</h2>
+                    <p style="color: #666; margin: 0.25rem 0;">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    {% if order.tracking_code %}
+                        <p style="color: #666; margin: 0.25rem 0;">Tracking Code: <strong>{{ order.tracking_code }}</strong></p>
+                    {% endif %}
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--header-bg); margin-bottom: 0.5rem;">{{ order.total|rupee }}</div>
+                    <span style="padding: 0.5rem 1.5rem; background: #f0f0f0; border-radius: 999px; font-size: 1rem; font-weight: 600; text-transform: capitalize;">{{ order.status }}</span>
+                </div>
+            </div>
+            
+            <div style="margin: 2rem 0; padding: 1.5rem; background: #f9f9f9; border-radius: 10px;">
+                <h3 style="margin-bottom: 1rem;">Order Items</h3>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.product_name }}</strong>
+                                    <p style="color: #666; font-size: 0.9rem; margin: 0.25rem 0;">SKU: {{ item.product_sku }}</p>
+                                </td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.unit_price|rupee }}</td>
+                                <td><strong>{{ (item.quantity * item.unit_price)|rupee }}</strong></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+                <div>
+                    <h3 style="margin-bottom: 1rem;">Shipping Address</h3>
+                    <div style="padding: 1rem; background: #f9f9f9; border-radius: 8px; white-space: pre-line;">{{ order.shipping_address }}</div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 1rem;">Order Summary</h3>
+                    <div style="padding: 1rem; background: #f9f9f9; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Subtotal:</span>
+                            <span>{{ order.subtotal|rupee }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Tax (GST):</span>
+                            <span>{{ order.tax|rupee }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Shipping:</span>
+                            <span>{{ order.shipping|rupee }}</span>
+                        </div>
+                        {% if order.discount > 0 %}
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--success);">
+                                <span>Discount:</span>
+                                <span>-{{ order.discount|rupee }}</span>
+                            </div>
+                        {% endif %}
+                        <div style="display: flex; justify-content: space-between; margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #ddd; font-size: 1.2rem; font-weight: 700;">
+                            <span>Total:</span>
+                            <span>{{ order.total|rupee }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if order.estimated_delivery %}
+                <div style="padding: 1rem; background: #e3f2fd; border-left: 4px solid var(--info); border-radius: 8px; margin-top: 1.5rem;">
+                    <strong>Estimated Delivery:</strong> {{ order.estimated_delivery.strftime('%B %d, %Y') }}
+                </div>
+            {% endif %}
+            
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="{{ url_for('orders') }}" class="btn ghost">Back to Orders</a>
+                <a href="{{ url_for('order_invoice', order_id=order.id) }}" class="btn primary" target="_blank">
+                    <i class="fa-solid fa-file-pdf"></i> Download Invoice
+                </a>
+                {% if order.status == 'placed' %}
+                    <form method="POST" action="{{ url_for('order_cancel', order_id=order.id) }}" style="margin: 0;">
+                        <button type="submit" class="btn ghost" style="color: var(--danger);" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel Order</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

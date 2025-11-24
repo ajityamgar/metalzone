@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}My Orders - Metal Zone{% endblock %}
+{% block meta_description %}View and track your orders at Metal Zone. Check order status, tracking information, and download invoices.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block content %}
+<section class="section" style="background: #f9f9f9; padding: 2rem 0;">
+    <div class="container narrow center">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">My Orders</h1>
+        <p>Track and manage your orders</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width: 1000px;">
+        {% if orders %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for order in orders %}
+                    <div class="panel" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h3 style="margin: 0 0 0.5rem;">Order #{{ order.order_number }}</h3>
+                                <p style="color: #666; margin: 0.25rem 0;">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                {% if order.tracking_code %}
+                                    <p style="color: #666; margin: 0.25rem 0;">Tracking: <strong>{{ order.tracking_code }}</strong></p>
+                                {% endif %}
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--header-bg); margin-bottom: 0.5rem;">{{ order.total|rupee }}</div>
+                                <span style="padding: 0.5rem 1rem; background: #f0f0f0; border-radius: 999px; font-size: 0.9rem; font-weight: 600; text-transform: capitalize;">{{ order.status }}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 1.5rem 0; padding: 1rem; background: #f9f9f9; border-radius: 8px;">
+                            <strong>Items:</strong>
+                            <ul style="margin: 0.5rem 0 0; padding-left: 1.5rem;">
+                                {% for item in order.items %}
+                                    <li>{{ item.product_name }} × {{ item.quantity }} - {{ (item.quantity * item.unit_price)|rupee }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <a href="{{ url_for('order_detail', order_id=order.id) }}" class="btn ghost">View Details</a>
+                            {% if order.status == 'placed' %}
+                                <form method="POST" action="{{ url_for('order_cancel', order_id=order.id) }}" style="margin: 0;">
+                                    <button type="submit" class="btn ghost" style="color: var(--danger);" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel Order</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <i class="fa-solid fa-box-open" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                <h2 style="margin-bottom: 1rem;">No orders yet</h2>
+                <p style="color: #666; margin-bottom: 2rem;">Start shopping to see your orders here!</p>
+                <a href="{{ url_for('products') }}" class="btn primary">Browse Products</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

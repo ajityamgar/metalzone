@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Manage Reviews - Admin{% endblock %}
+{% block content %}
+
+<div class="admin-header">
+    <div class="container">
+        <h1 style="margin: 0 0 1rem;">Review Management</h1>
+
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin_products') }}">Products</a>
+            <a href="{{ url_for('admin_orders') }}">Orders</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_blog') }}">Blog</a>
+            <a href="{{ url_for('admin_coupons') }}">Coupons</a>
+            <a href="{{ url_for('admin_reviews') }}" class="active">Reviews</a>
+            <a href="{{ url_for('admin_messages') }}">Messages</a>
+            <a href="{{ url_for('admin_reports') }}">Reports</a>
+        </nav>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Filters -->
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_reviews') }}"
+               class="btn {% if status_filter == 'all' %}primary{% else %}ghost{% endif %}">
+               All
+            </a>
+
+            <a href="{{ url_for('admin_reviews', status='pending') }}"
+               class="btn {% if status_filter == 'pending' %}primary{% else %}ghost{% endif %}">
+               Pending
+            </a>
+
+            <a href="{{ url_for('admin_reviews', status='approved') }}"
+               class="btn {% if status_filter == 'approved' %}primary{% else %}ghost{% endif %}">
+               Approved
+            </a>
+        </div>
+
+        <!-- Review List -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+
+            {% for review in reviews %}
+            <div class="panel" style="background: white; padding: 1.5rem; border-radius: 15px;
+                                      box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    
+                    <!-- Left: Review Details -->
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                            <strong>{{ review.user.name }}</strong>
+
+                            <span class="stars">
+                                {% for i in range(5) %}
+                                    {% if i < review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+
+                            <span style="color: #666; font-size: 0.9rem;">
+                                {{ review.created_at.strftime('%b %d, %Y') }}
+                            </span>
+                        </div>
+
+                        <p style="color: #666; margin: 0.5rem 0;">
+                            <strong>Product:</strong> {{ review.product.name }}
+                        </p>
+
+                        {% if review.title %}
+                            <h4 style="margin: 0.5rem 0;">{{ review.title }}</h4>
+                        {% endif %}
+
+                        {% if review.comment %}
+                            <p style="line-height: 1.6; color: #555;">{{ review.comment }}</p>
+                        {% endif %}
+
+                        {% if review.approved %}
+                            <span style="padding: 0.25rem 0.75rem; background: var(--success);
+                                         color: white; border-radius: 999px; font-size: 0.8rem;">
+                                Approved
+                            </span>
+                        {% else %}
+                            <span style="padding: 0.25rem 0.75rem; background: var(--warning);
+                                         color: white; border-radius: 999px; font-size: 0.8rem;">
+                                Pending
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right: Action Buttons -->
+                    <div style="display: flex; gap: 0.5rem;">
+
+                        {% if not review.approved %}
+                        <form method="POST"
+                              action="{{ url_for('admin_review_approve', review_id=review.id) }}"
+                              style="margin: 0;">
+                            
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <button type="submit"
+                                    class="btn primary"
+                                    style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                Approve
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <form method="POST"
+                              action="{{ url_for('admin_review_delete', review_id=review.id) }}"
+                              style="margin: 0;">
+                            
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <button type="submit"
+                                    class="btn ghost"
+                                    style="padding: 0.5rem 1rem; font-size: 0.9rem; color: var(--danger);"
+                                    onclick="return confirm('Are you sure?')">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 2rem;">
+                    No reviews found.
+                </p>
+            {% endfor %}
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

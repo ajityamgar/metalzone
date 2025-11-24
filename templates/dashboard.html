@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · GearGlide{% endblock %}
+
+{% block content %}
+<section class="section hero-sub">
+    <div class="container narrow">
+        <p class="eyebrow">Account</p>
+        <h1>Hello {{ user.name }}</h1>
+        <p>Manage your orders and profile details.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container panel">
+        <h3>Order history</h3>
+        {% if orders %}
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.total|rupee }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>You have no orders yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Checkout - Metal Zone{% endblock %}
+{% block meta_description %}Complete your order at Metal Zone. Secure checkout with multiple payment options including COD, Razorpay, UPI, and more.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block content %}
+<section class="section" style="background: #f9f9f9; padding: 2rem 0;">
+    <div class="container narrow center">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Checkout</h1>
+        <p>Complete your order</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container checkout-grid">
+        <div class="panel" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 1.5rem;">Shipping & Payment</h3>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-row">
+                    <label>Select Address</label>
+                    {{ form.address_id(class="form-control") }}
+                    <a href="{{ url_for('addresses') }}" style="color: var(--header-bg); margin-top: 0.5rem; display: inline-block;">Manage Addresses</a>
+                </div>
+                
+                <div class="form-row">
+                    <label>Payment Method *</label>
+                    {{ form.payment_method(class="form-control") }}
+                </div>
+                
+                <div class="form-row">
+                    <label>Coupon Code (Optional)</label>
+                    {{ form.coupon_code(class="form-control", placeholder="Enter coupon code") }}
+                </div>
+                
+                <div class="form-row">
+                    <label>Order Notes (Optional)</label>
+                    {{ form.notes(class="form-control", rows="3", placeholder="Special instructions for delivery...") }}
+                </div>
+                
+                <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid var(--warning);">
+                    <p style="margin: 0; font-size: 0.9rem;"><strong>Note:</strong> For payment methods like Razorpay, Stripe, PayPal, UPI, and Wallet, you will be redirected to the payment gateway after placing the order. Cash on Delivery (COD) orders will be processed immediately.</p>
+                </div>
+                
+                <button class="btn primary full" type="submit">Place Order</button>
+            </form>
+        </div>
+        
+        <aside class="order-review">
+            <h3>Order Summary</h3>
+            <ul>
+                {% for item in items %}
+                    <li>
+                        <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                        <span>{{ item.subtotal|rupee }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div style="margin: 1.5rem 0; padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Subtotal:</span>
+                    <span>{{ subtotal|rupee }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Tax (GST 18%):</span>
+                    <span>{{ tax|rupee }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Shipping:</span>
+                    <span>{% if shipping == 0 %}<span style="color: var(--success);">FREE</span>{% else %}{{ shipping|rupee }}{% endif %}</span>
+                </div>
+                {% if discount > 0 %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--success);">
+                        <span>Discount:</span>
+                        <span>-{{ discount|rupee }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="total">
+                <span>Total:</span>
+                <strong>{{ total|rupee }}</strong>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

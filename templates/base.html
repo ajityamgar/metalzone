@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Metal Zone - Premium RC Cars, Metal Cars & Hot Wheels Store. Shop the finest collection of collectibles and remote-controlled vehicles in India.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}RC cars, metal cars, Hot Wheels, collectibles, die-cast models, India{% endblock %}">
+    <meta name="author" content="Metal Zone">
+    <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ self.meta_description() }}{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+    <link rel="canonical" href="{{ request.url }}">
+    <title>{% block title %}Metal Zone - Premium RC Cars, Metal Cars & Hot Wheels{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-P4+AoJBgY5T2r8j04YfGLwRoTSesFiNUFDXL9uBeb5GsyhQOdE31E4n4t4lhccnE9vrFica8FWHQrQQiz6WXTg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+<header class="site-header">
+    <div class="container flex between align-center">
+        <div class="logo-group">
+            <div class="logo-mark"><i class="fa-solid fa-car-side"></i></div>
+            <div>
+                <a class="logo" href="{{ url_for('home') }}">Metal Zone</a>
+                <p class="tagline">Premium RC Cars, Metal Cars & Hot Wheels</p>
+            </div>
+        </div>
+        <nav class="main-nav" id="mainNav">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('products') }}">Products</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+        </nav>
+        <div class="header-actions">
+            {% if logged_in_user and logged_in_user.is_admin %}
+                <a href="{{ url_for('admin_dashboard') }}" class="pill cart-pill" aria-label="Admin Dashboard">
+                    <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('cart') }}" class="pill cart-pill" aria-label="Shopping cart with {{ cart_count }} items">
+                    <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+                    <span>Cart</span>
+                    {% if cart_count > 0 %}<strong aria-label="{{ cart_count }} items in cart">{{ cart_count }}</strong>{% endif %}
+                </a>
+            {% endif %}
+            {% if logged_in_user %}
+                <a href="{{ url_for('profile') }}" class="pill profile-pill" aria-label="User profile">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    {% if logged_in_user.is_admin %}
+                        <span style="color: #fcd34d;">Admin</span>
+                    {% else %}
+                        <span>{{ logged_in_user.name.split()[0] }}</span>
+                    {% endif %}
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="pill profile-pill" aria-label="Login">
+                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    <span>Login</span>
+                </a>
+            {% endif %}
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-wrapper">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Metal Zone</h4>
+                <p>Your premier destination for premium RC Cars, Metal Cars, and Hot Wheels collections in India.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h5>Contact Info</h5>
+                <ul>
+                    <li><i class="fa-solid fa-envelope"></i> support.metelzone@gmail.com</li>
+                    <li><i class="fa-solid fa-phone"></i> +91 7499474733</li>
+                    <li><i class="fa-solid fa-location-dot"></i> pune, Maharashtra, India</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {{ current_year }} Metal Zone. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+// Ensure every POST form has a CSRF token hidden input.
+// This helps protect inline forms (delete buttons, quick actions) that don't use WTForms.
+(function(){
+    try {
+        const csrf = '{{ csrf_token() }}';
+        if (!csrf) return;
+        document.addEventListener('DOMContentLoaded', function(){
+            const forms = document.querySelectorAll('form[method="POST"]');
+            forms.forEach(f => {
+                // skip if already has csrf_token input
+                if (f.querySelector('input[name="csrf_token"]')) return;
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'csrf_token';
+                input.value = csrf;
+                f.prepend(input);
+            });
+        });
+    } catch (e) {
+        console.error('CSRF injector error', e);
+    }
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

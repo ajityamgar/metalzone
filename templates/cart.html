@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Shopping Cart - Metal Zone{% endblock %}
+{% block meta_description %}Review your shopping cart at Metal Zone. Update quantities, apply coupon codes, and proceed to checkout.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block content %}
+<section class="section" style="background: #f9f9f9; padding: 2rem 0;">
+    <div class="container narrow center">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Shopping Cart</h1>
+        <p>Review your selections before checkout</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container cart-grid">
+        <div class="cart-table">
+            {% if items %}
+                <form method="POST" action="{{ url_for('cart_update') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; gap: 1rem; align-items: center;">
+                                            <img src="{{ item.product.image|fix_image }}" alt="{{ item.product.name }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                                            <div>
+                                                <strong>{{ item.product.name }}</strong>
+                                                <p style="color: #666; font-size: 0.9rem; margin: 0.25rem 0;">{{ item.product.brand }}</p>
+                                                <p style="color: #999; font-size: 0.85rem; margin: 0;">SKU: {{ item.product.sku }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.product.price|rupee }}</td>
+                                    <td>
+                                        <input type="number" name="qty_{{ item.product.id }}" min="1" max="{{ item.product.stock }}" value="{{ item.quantity }}" style="width: 80px; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px;">
+                                    </td>
+                                    <td><strong>{{ item.subtotal|rupee }}</strong></td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('cart_remove', product_id=item.product.id) }}" style="margin: 0;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1.2rem;" title="Remove">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 1.5rem;">
+                        <button class="btn ghost" type="submit">Update Cart</button>
+                        <a href="{{ url_for('products') }}" class="btn ghost" style="margin-left: 1rem;">Continue Shopping</a>
+                    </div>
+                </form>
+            {% else %}
+                <div style="text-align: center; padding: 4rem 2rem;">
+                    <i class="fa-solid fa-cart-shopping" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <h2 style="margin-bottom: 1rem;">Your cart is empty</h2>
+                    <p style="color: #666; margin-bottom: 2rem;">Add some products to get started!</p>
+                    <a href="{{ url_for('products') }}" class="btn primary">Browse Products</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if items %}
+            <aside class="cart-summary">
+                <h3>Order Summary</h3>
+                <div style="margin: 1.5rem 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span>Subtotal:</span>
+                        <span>{{ subtotal|rupee }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span>Tax (GST 18%):</span>
+                        <span>{{ tax|rupee }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span>Shipping:</span>
+                        <span>{% if shipping == 0 %}<span style="color: var(--success);">FREE</span>{% else %}{{ shipping|rupee }}{% endif %}</span>
+                    </div>
+                    {% if discount > 0 %}
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem; color: var(--success);">
+                            <span>Discount ({{ coupon_code }}):</span>
+                            <span>-{{ discount|rupee }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <form method="POST" action="{{ url_for('cart_coupon') }}" style="margin: 1.5rem 0; padding-top: 1.5rem; border-top: 1px solid #ddd;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" name="coupon_code" placeholder="Coupon Code" value="{{ coupon_code }}" style="flex: 1; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px;">
+                        {% if coupon_code %}
+                            <button type="submit" formaction="{{ url_for('cart_coupon_remove') }}" class="btn ghost" style="padding: 0.75rem 1rem;">Remove</button>
+                        {% else %}
+                            <button type="submit" class="btn ghost" style="padding: 0.75rem 1rem;">Apply</button>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                <div class="total" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #ddd;">
+                    <span>Total:</span>
+                    <strong style="font-size: 1.5rem; color: var(--header-bg);">{{ total|rupee }}</strong>
+                </div>
+                
+                {% if subtotal < 500 %}
+                    <p style="font-size: 0.85rem; color: var(--warning); margin-top: 1rem; text-align: center;">
+                        Add ₹{{ (500 - subtotal)|int_rupee }} more for FREE shipping!
+                    </p>
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--success); margin-top: 1rem; text-align: center;">
+                        ✓ You qualify for FREE shipping!
+                    </p>
+                {% endif %}
+                
+                {% if logged_in_user %}
+                    <a href="{{ url_for('checkout') }}" class="btn primary full" style="margin-top: 1.5rem;">Proceed to Checkout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn primary full" style="margin-top: 1.5rem;">Login to Checkout</a>
+                    <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">New customer? <a href="{{ url_for('register') }}" style="color: var(--header-bg);">Sign up here</a></p>
+                {% endif %}
+            </aside>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

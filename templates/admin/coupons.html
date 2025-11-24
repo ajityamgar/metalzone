@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}Manage Coupons - Admin{% endblock %}
+{% block content %}
+
+<div class="admin-header">
+    <div class="container">
+        <h1 style="margin: 0 0 1rem;">Coupon Management</h1>
+
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin_products') }}">Products</a>
+            <a href="{{ url_for('admin_orders') }}">Orders</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_blog') }}">Blog</a>
+            <a href="{{ url_for('admin_coupons') }}" class="active">Coupons</a>
+            <a href="{{ url_for('admin_reviews') }}">Reviews</a>
+            <a href="{{ url_for('admin_messages') }}">Messages</a>
+            <a href="{{ url_for('admin_reports') }}">Reports</a>
+        </nav>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+
+            <!-- LEFT: Add/Edit Coupon Form -->
+            <div class="panel"
+                 style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); height: fit-content;">
+
+                <h2 style="margin-bottom: 1.5rem;">Add New Coupon</h2>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    {% if form.errors %}
+                    <div class="form-errors" style="margin-bottom:1rem; padding:0.75rem; background:#fff6f6; border:1px solid #ffd6d6; border-radius:6px;">
+                        <ul style="margin:0; padding-left:1.2rem; color:#b00020">
+                        {% for field, errors in form.errors.items() %}
+                            {% for error in errors %}
+                                <li><strong>{{ form[field].label.text if form[field] is defined else field }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {{ form.coupon_id() }}
+
+                    <div class="form-row">
+                        <label>Coupon Code *</label>
+                        {{ form.code(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Description</label>
+                        {{ form.description(class="form-control", rows="3") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Discount Type *</label>
+                        {{ form.discount_type(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Discount Value *</label>
+                        {{ form.discount_value(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Minimum Purchase (₹)</label>
+                        {{ form.min_purchase(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Maximum Discount (₹)</label>
+                        {{ form.max_discount(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Total Usage Limit</label>
+                        {{ form.usage_limit(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Per User Limit</label>
+                        {{ form.user_limit(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Valid From *</label>
+                        {{ form.valid_from(class="form-control", type="datetime-local") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Valid Until *</label>
+                        {{ form.valid_until(class="form-control", type="datetime-local") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>{{ form.is_active() }} Active</label>
+                    </div>
+
+                    <button class="btn primary" type="submit">Save Coupon</button>
+                </form>
+            </div>
+
+            <!-- RIGHT: List of Coupons -->
+            <div>
+                <h2 style="margin-bottom: 1.5rem;">All Coupons</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Type</th>
+                            <th>Value</th>
+                            <th>Usage</th>
+                            <th>Valid Until</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for coupon in coupons %}
+                        <tr>
+                            <td><strong>{{ coupon.code }}</strong></td>
+                            <td>{{ coupon.discount_type }}</td>
+
+                            <td>
+                                {{ coupon.discount_value }}
+                                {% if coupon.discount_type == 'percentage' %}%{% else %}₹{% endif %}
+                            </td>
+
+                            <td>
+                                {{ coupon.used_count }}
+                                {% if coupon.usage_limit %}/{{ coupon.usage_limit }}{% endif %}
+                            </td>
+
+                            <td>{{ coupon.valid_until.strftime('%b %d, %Y') }}</td>
+
+                            <td>
+                                {% if coupon.is_active %}
+                                    <span style="color: var(--success);">Active</span>
+                                {% else %}
+                                    <span style="color: var(--danger);">Inactive</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <form method="POST"
+                                      action="{{ url_for('admin_coupon_delete', coupon_id=coupon.id) }}"
+                                      style="display: inline;">
+
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                    <button type="submit"
+                                            class="btn ghost"
+                                            style="padding: 0.5rem 1rem; font-size: 0.9rem; color: var(--danger);"
+                                            onclick="return confirm('Are you sure you want to delete this coupon?')">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:2rem;">
+                                No coupons found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

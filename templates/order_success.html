@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.id }} Â· GlideMans{% endblock %}
+
+{% block content %}
+<section class="section hero-sub">
+    <div class="container narrow center">
+        <p class="eyebrow">Thank you</p>
+        <h1>Order placed successfully</h1>
+        <p>Reference: {{ order.payment_reference or 'N/A' }}</p>
+        <a class="btn primary" href="{{ url_for('dashboard') }}">View orders</a>
+    </div>
+</section>
+{% endblock %}
+

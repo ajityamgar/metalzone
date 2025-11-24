@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ order.order_number }} - Metal Zone</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; padding: 2rem; background: #f5f5f5; }
+        .invoice-container { max-width: 800px; margin: 0 auto; background: white; padding: 2rem; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #df2e7e; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #df2e7e; }
+        .invoice-title { text-align: right; }
+        .invoice-title h1 { color: #df2e7e; margin-bottom: 0.5rem; }
+        .invoice-info { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .info-section h3 { color: #333; margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: uppercase; }
+        .info-section p { margin: 0.25rem 0; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin: 2rem 0; }
+        th { background: #f5f5f5; padding: 1rem; text-align: left; border-bottom: 2px solid #ddd; }
+        td { padding: 1rem; border-bottom: 1px solid #eee; }
+        .text-right { text-align: right; }
+        .total-section { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #ddd; }
+        .total-row { display: flex; justify-content: space-between; padding: 0.5rem 0; }
+        .total-row.final { font-size: 1.2rem; font-weight: bold; color: #df2e7e; border-top: 2px solid #df2e7e; padding-top: 1rem; margin-top: 0.5rem; }
+        .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 0.9rem; }
+        @media print { body { background: white; } .invoice-container { box-shadow: none; } }
+        .btn-print { background: #df2e7e; color: white; padding: 0.75rem 2rem; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 1rem; }
+        .btn-print:hover { background: #c0256a; }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <button class="btn-print" onclick="window.print()">Print Invoice</button>
+        
+        <div class="header">
+            <div>
+                <div class="logo">Metal Zone</div>
+                <p style="color: #666; margin-top: 0.5rem;">Premium RC Cars, Metal Cars & Hot Wheels</p>
+                <p style="color: #666; margin-top: 0.5rem;">Mumbai, Maharashtra, India</p>
+            </div>
+            <div class="invoice-title">
+                <h1>INVOICE</h1>
+                <p><strong>Invoice #:</strong> {{ order.order_number }}</p>
+                <p><strong>Date:</strong> {{ order.created_at.strftime('%B %d, %Y') }}</p>
+                {% if order.tracking_code %}
+                <p><strong>Tracking:</strong> {{ order.tracking_code }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="invoice-info">
+            <div class="info-section">
+                <h3>Bill To:</h3>
+                <p><strong>{{ order.customer.name }}</strong></p>
+                <p>{{ order.customer.email }}</p>
+                {% if order.customer.mobile %}
+                <p>{{ order.customer.mobile }}</p>
+                {% endif %}
+                <div style="white-space: pre-line; margin-top: 0.5rem;">{{ order.shipping_address }}</div>
+            </div>
+            <div class="info-section">
+                <h3>Order Details:</h3>
+                <p><strong>Order Status:</strong> {{ order.status|title }}</p>
+                <p><strong>Payment Status:</strong> {{ order.payment_status|title }}</p>
+                <p><strong>Payment Method:</strong> {{ order.payment_method|upper if order.payment_method else 'N/A' }}</p>
+                {% if order.estimated_delivery %}
+                <p><strong>Est. Delivery:</strong> {{ order.estimated_delivery.strftime('%B %d, %Y') }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>SKU</th>
+                    <th class="text-right">Quantity</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items %}
+                <tr>
+                    <td><strong>{{ item.product_name }}</strong></td>
+                    <td>{{ item.product_sku }}</td>
+                    <td class="text-right">{{ item.quantity }}</td>
+                    <td class="text-right">{{ item.unit_price|rupee }}</td>
+                    <td class="text-right"><strong>{{ (item.quantity * item.unit_price)|rupee }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="total-section">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>{{ order.subtotal|rupee }}</span>
+            </div>
+            <div class="total-row">
+                <span>Tax (GST 18%):</span>
+                <span>{{ order.tax|rupee }}</span>
+            </div>
+            <div class="total-row">
+                <span>Shipping:</span>
+                <span>{{ order.shipping|rupee }}</span>
+            </div>
+            {% if order.discount > 0 %}
+            <div class="total-row" style="color: #10b981;">
+                <span>Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}:</span>
+                <span>-{{ order.discount|rupee }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row final">
+                <span>Total Amount:</span>
+                <span>{{ order.total|rupee }}</span>
+            </div>
+        </div>
+        
+        {% if order.notes %}
+        <div style="margin-top: 2rem; padding: 1rem; background: #f9f9f9; border-radius: 5px;">
+            <strong>Order Notes:</strong>
+            <p style="margin-top: 0.5rem;">{{ order.notes }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>Thank you for shopping with Metal Zone!</p>
+            <p>For any queries, contact us at support@metalzone.com or +91 98765 43210</p>
+            <p style="margin-top: 1rem;">This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+    </div>
+</body>
+</html>
+

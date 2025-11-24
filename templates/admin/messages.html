@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Contact Messages - Admin{% endblock %}
+{% block content %}
+
+<div class="admin-header">
+    <div class="container">
+        <h1 style="margin: 0 0 1rem;">Contact Messages</h1>
+
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin_products') }}">Products</a>
+            <a href="{{ url_for('admin_orders') }}">Orders</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_blog') }}">Blog</a>
+            <a href="{{ url_for('admin_coupons') }}">Coupons</a>
+            <a href="{{ url_for('admin_reviews') }}">Reviews</a>
+            <a href="{{ url_for('admin_messages') }}" class="active">Messages</a>
+            <a href="{{ url_for('admin_reports') }}">Reports</a>
+        </nav>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Filter Buttons -->
+        <div style="margin-bottom: 2rem;">
+            <a href="{{ url_for('admin_messages') }}"
+               class="btn {% if status_filter == 'all' %}primary{% else %}ghost{% endif %}">
+               All
+            </a>
+
+            <a href="{{ url_for('admin_messages', status='new') }}"
+               class="btn {% if status_filter == 'new' %}primary{% else %}ghost{% endif %}">
+               New
+            </a>
+
+            <a href="{{ url_for('admin_messages', status='read') }}"
+               class="btn {% if status_filter == 'read' %}primary{% else %}ghost{% endif %}">
+               Read
+            </a>
+
+            <a href="{{ url_for('admin_messages', status='replied') }}"
+               class="btn {% if status_filter == 'replied' %}primary{% else %}ghost{% endif %}">
+               Replied
+            </a>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+
+            {% for message in messages %}
+            <div class="panel"
+                 style="background: white; padding: 1.5rem; border-radius: 15px;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+
+                    <div style="flex: 1;">
+                        <!-- Message Meta Info -->
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                            <strong>{{ message.name }}</strong>
+                            <span style="color: #666;">{{ message.email }}</span>
+                            {% if message.mobile %}
+                                <span style="color: #666;">{{ message.mobile }}</span>
+                            {% endif %}
+                            <span style="color: #999; font-size: 0.9rem;">
+                                {{ message.created_at.strftime('%b %d, %Y') }}
+                            </span>
+                        </div>
+
+                        <!-- Subject -->
+                        {% if message.subject %}
+                            <h4 style="margin: 0.5rem 0;">{{ message.subject }}</h4>
+                        {% endif %}
+
+                        <!-- Message -->
+                        <p style="line-height: 1.6; color: #555; margin: 0.5rem 0;">
+                            {{ message.message }}
+                        </p>
+
+                        <!-- Status Label -->
+                        <span style="padding: 0.25rem 0.75rem; background: #f0f0f0;
+                                     border-radius: 999px; font-size: 0.8rem; margin-top: 0.5rem;
+                                     display: inline-block; text-transform: capitalize;">
+                            {{ message.status }}
+                        </span>
+                    </div>
+
+                    <!-- Admin Controls -->
+                    <form method="POST"
+                          action="{{ url_for('admin_message_update', message_id=message.id) }}"
+                          style="margin: 0;">
+
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <select name="status"
+                                onchange="this.form.submit()"
+                                style="padding: 0.5rem; border-radius: 5px; min-width: 120px;">
+                            <option value="new" {% if message.status == 'new' %}selected{% endif %}>New</option>
+                            <option value="read" {% if message.status == 'read' %}selected{% endif %}>Read</option>
+                            <option value="replied" {% if message.status == 'replied' %}selected{% endif %}>Replied</option>
+                            <option value="closed" {% if message.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </form>
+
+                </div>
+            </div>
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 2rem;">
+                    No messages found.
+                </p>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} - Metal Zone{% endblock %}
+{% block meta_description %}{{ product.short_description or product.description[:160] }}{% endblock %}
+{% block meta_keywords %}{{ product.tags or '' }}, {{ product.category }}, {{ product.brand }}, Metal Zone{% endblock %}
+{% block og_title %}{{ product.name }} - Metal Zone{% endblock %}
+{% block og_description %}{{ product.short_description or product.description[:160] }}{% endblock %}
+{% block content %}
+<section class="section">
+    <div class="container product-detail">
+        <div class="gallery">
+            <img src="{{ product.image|fix_image }}" alt="{{ product.name }}" style="width: 100%; border-radius: 20px;">
+            {% if images|length > 1 %}
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 1rem;">
+                    {% for img in images[:4] %}
+                        <img src="{{ (img.url if img.url else img)|fix_image }}" alt="{{ product.name }}" style="border-radius: 10px; cursor: pointer;" onclick="this.parentElement.previousElementSibling.src=this.src">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="product-info">
+            <p class="category">{{ product.category }} · {{ product.brand }}</p>
+            <h1 style="font-size: 2rem; margin: 0.5rem 0;">{{ product.name }}</h1>
+            <p style="color: #666; margin-bottom: 1rem;">SKU: {{ product.sku }}</p>
+            
+            {% if product.rating > 0 %}
+                <div class="rating">
+                    <span class="stars">{% for i in range(5) %}{% if i < product.rating|int %}★{% else %}☆{% endif %}{% endfor %}</span>
+                    <span style="margin-left: 0.5rem;">{{ product.rating|round(1) }} ({{ product.review_count }} reviews)</span>
+                </div>
+            {% endif %}
+            
+            <div class="price-section">
+                <div class="price-row">
+                    <span class="price" style="font-size: 2rem;">{{ product.price|rupee }}</span>
+                    {% if product.mrp and product.mrp > product.price %}
+                        <span class="mrp" style="font-size: 1.2rem;">{{ product.mrp|rupee }}</span>
+                        <span class="discount-badge">Save {{ ((product.mrp - product.price) / product.mrp * 100)|int }}%</span>
+                    {% endif %}
+                </div>
+                <p class="inventory" style="margin-top: 0.5rem;">
+                    {% if product.stock > 10 %}
+                        <span style="color: var(--success);">✓ In Stock ({{ product.stock }} available)</span>
+                    {% elif product.stock > 0 %}
+                        <span style="color: var(--warning);">⚠ Only {{ product.stock }} left in stock!</span>
+                    {% else %}
+                        <span style="color: var(--danger);">✗ Out of Stock</span>
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div style="margin: 2rem 0; padding: 1.5rem; background: #f9f9f9; border-radius: 10px;">
+                <h3 style="margin-bottom: 1rem;">Description</h3>
+                <p style="line-height: 1.8; color: #555;">{{ product.description }}</p>
+                {% if product.weight or product.dimensions %}
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #ddd;">
+                        {% if product.weight %}<p><strong>Weight:</strong> {{ product.weight }}g</p>{% endif %}
+                        {% if product.dimensions %}<p><strong>Dimensions:</strong> {{ product.dimensions }} cm</p>{% endif %}
+                    </div>
+                {% endif %}
+                {% if product.tags %}
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #ddd;">
+                        <strong>Tags:</strong>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            {% for tag in product.tags.split(',') %}
+                                <span style="padding: 0.25rem 0.75rem; background: #e3f2fd; color: #1976d2; border-radius: 999px; font-size: 0.85rem;">{{ tag.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <form class="add-form" action="{{ url_for('cart_add', product_id=product.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <label style="font-weight: 600;">Quantity:</label>
+                    <input type="number" name="quantity" min="1" max="{{ product.stock }}" value="1" class="quantity-input" style="width: 80px; padding: 0.75rem; border: 2px solid #ddd; border-radius: 8px;">
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    {% if product.stock > 0 %}
+                        <button class="btn primary" type="submit" style="flex: 1;">
+                            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                        </button>
+                    {% else %}
+                        <button class="btn primary" type="button" disabled style="flex: 1; opacity: 0.5;">Out of Stock</button>
+                    {% endif %}
+                    {% if logged_in_user %}
+                        {% if not wished %}
+                            <form method="POST" action="{{ url_for('wishlist_add', product_id=product.id) }}" style="margin: 0;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button class="btn ghost" type="submit" style="padding: 0.85rem 1.5rem;">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="POST" action="{{ url_for('wishlist_remove', product_id=product.id) }}" style="margin: 0;">
+                                <button class="btn ghost" type="submit" style="padding: 0.85rem 1.5rem; color: var(--danger);">
+                                    <i class="fa-solid fa-heart" style="color: var(--danger);"></i>
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+{% if reviews %}
+<section class="section reviews-section">
+    <div class="container">
+        <h2 style="margin-bottom: 2rem;">Customer Reviews</h2>
+        {% for review in reviews %}
+            <div class="review-item">
+                <div class="review-header">
+                    <div>
+                        <div class="review-author">{{ review.user.name }}</div>
+                        <div class="rating">
+                            <span class="stars">{% for i in range(5) %}{% if i < review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+                        </div>
+                        {% if review.title %}<h4 style="margin: 0.5rem 0;">{{ review.title }}</h4>{% endif %}
+                    </div>
+                    <div class="review-date">{{ review.created_at.strftime('%B %d, %Y') }}</div>
+                </div>
+                {% if review.comment %}
+                    <p style="line-height: 1.6; color: var(--text-muted);">{{ review.comment }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if logged_in_user %}
+<section class="section">
+    <div class="container">
+        <h2 style="margin-bottom: 1.5rem;">Write a Review</h2>
+        <form method="POST" action="{{ url_for('add_review', product_id=product.id) }}" style="max-width: 600px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="form-row">
+                <label>Rating *</label>
+                <select name="rating" required style="width: 100%;">
+                    <option value="">Select Rating</option>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label>Review Title (Optional)</label>
+                <input type="text" name="title" placeholder="Summarize your experience">
+            </div>
+            <div class="form-row">
+                <label>Your Review</label>
+                <textarea name="comment" rows="5" placeholder="Share your thoughts about this product..."></textarea>
+            </div>
+            <button class="btn primary" type="submit">Submit Review</button>
+        </form>
+    </div>
+</section>
+{% endif %}
+
+{% if related %}
+<section class="section dark">
+    <div class="container">
+        <div class="section-header" style="margin-bottom: 2rem;">
+            <h2>You May Also Like</h2>
+        </div>
+        <div class="grid cards-4">
+            {% for rel in related %}
+                <article class="product-card">
+                    <a href="{{ url_for('product_detail', product_id=rel.id) }}">
+                        <div class="product-media">
+                            <img src="{{ rel.image|fix_image }}" alt="{{ rel.name }}" loading="lazy">
+                        </div>
+                    </a>
+                    <div class="product-body">
+                        <p class="category">{{ rel.category }} · {{ rel.brand }}</p>
+                        <h3><a href="{{ url_for('product_detail', product_id=rel.id) }}">{{ rel.name }}</a></h3>
+                        <div class="price-row">
+                            <span class="price">{{ rel.price|rupee }}</span>
+                            {% if rel.mrp and rel.mrp > rel.price %}
+                                <span class="mrp">{{ rel.mrp|rupee }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <a class="btn ghost" href="{{ url_for('product_detail', product_id=rel.id) }}">View</a>
+                        {% if rel.stock > 0 %}
+                            <form action="{{ url_for('cart_add', product_id=rel.id) }}" method="POST" style="flex: 1;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button class="btn primary" type="submit" style="width: 100%;">Add</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

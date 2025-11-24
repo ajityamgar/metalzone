@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% block title %}Manage Products - Admin{% endblock %}
+{% block content %}
+
+<div class="admin-header">
+    <div class="container">
+        <h1 style="margin: 0 0 1rem;">Product Management</h1>
+
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('admin_products') }}" class="active">Products</a>
+            <a href="{{ url_for('admin_orders') }}">Orders</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_blog') }}">Blog</a>
+            <a href="{{ url_for('admin_coupons') }}">Coupons</a>
+            <a href="{{ url_for('admin_reviews') }}">Reviews</a>
+            <a href="{{ url_for('admin_messages') }}">Messages</a>
+            <a href="{{ url_for('admin_reports') }}">Reports</a>
+        </nav>
+    </div>
+</div>
+
+
+<section class="section">
+    <div class="container">
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+
+            <!-- LEFT PANEL : Add / Edit Product -->
+            <div class="panel"
+                style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); height: fit-content;">
+
+                <h2 style="margin-bottom: 1.5rem;">
+                    {{ 'Edit Product' if editing else 'Add New Product' }}
+                </h2>
+
+                <form method="POST" action="{{ url_for('admin_products') }}" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    {% if form.errors %}
+                    <div class="form-errors" style="margin-bottom:1rem; padding:0.75rem; background:#fff6f6; border:1px solid #ffd6d6; border-radius:6px;">
+                        <ul style="margin:0; padding-left:1.2rem; color:#b00020">
+                        {% for field, errors in form.errors.items() %}
+                            {% for error in errors %}
+                                <li><strong>{{ form[field].label.text if form[field] is defined else field }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    {{ form.product_id() }}
+
+                    <div class="form-row">
+                        <label>Product Name *</label>
+                        {{ form.name(class="form-control") }}
+                    </div>
+
+                        <div class="form-row">
+                            <label>Brand *</label>
+                            {{ form.brand(class="form-control") }}
+                        </div>
+
+                        <div class="form-row">
+                            <label>Category *</label>
+                            {{ form.category(class="form-control") }}
+                        </div>
+
+                    <div class="form-row">
+                        <label>Subcategory</label>
+                        {{ form.subcategory(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Price (₹) *</label>
+                        {{ form.price(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>MRP (₹)</label>
+                        {{ form.mrp(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Stock Quantity *</label>
+                        {{ form.stock(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>SKU *</label>
+                        {{ form.sku(class="form-control") }}
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="form-row">
+                        <label>Main Image URL</label>
+
+                        {{ form.image(class="form-control", id="product-image-url") }}
+
+                        <small style="color: #666; margin-top: 0.25rem; display: block;">Or upload an image:</small>
+
+                        <input type="file" id="image-upload" accept="image/*" style="margin-top: 0.5rem;">
+
+                        <button type="button" class="btn ghost" onclick="uploadImage()" style="margin-top: 0.5rem;">
+                            Upload Image
+                        </button>
+
+                        <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <label>Short Description</label>
+                        {{ form.short_description(class="form-control", rows="2") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Description *</label>
+                        {{ form.description(class="form-control", rows="5") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Tags (comma-separated)</label>
+                        {{ form.tags(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Weight (grams)</label>
+                        {{ form.weight(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>Dimensions (LxWxH in cm)</label>
+                        {{ form.dimensions(class="form-control") }}
+                    </div>
+
+                    <div class="form-row">
+                        <label>{{ form.featured() }} Featured Product</label>
+                    </div>
+
+                    <div class="form-row">
+                        <label>{{ form.is_active() }} Active</label>
+                    </div>
+
+                    <button class="btn primary" type="submit">Save Product</button>
+
+                    {% if editing %}
+                    <a href="{{ url_for('admin_products') }}" class="btn ghost" style="margin-left: 1rem;">Cancel</a>
+                    {% endif %}
+                </form>
+            </div>
+
+
+            <!-- RIGHT PANEL - Product List -->
+            <div>
+                <h2 style="margin-bottom: 1.5rem;">All Products</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in pagination.items %}
+                        <tr>
+                            <td>
+                                  <img src="{{ product.image|fix_image }}"
+                                     alt="{{ product.name }}"
+                                     style="width: 55px; height: 55px; object-fit: cover; border-radius: 5px;">
+                            </td>
+
+                            <td>
+                                <strong>{{ product.name }}</strong><br>
+                                <small>{{ product.brand }}</small>
+                            </td>
+
+                            <td>{{ product.category }}</td>
+
+                            <td>{{ product.price | rupee }}</td>
+
+                            <td>{{ product.stock }}</td>
+
+                            <td>
+                                {% if product.is_active %}
+                                <span style="color: var(--success);">Active</span>
+                                {% else %}
+                                <span style="color: var(--danger);">Inactive</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a href="{{ url_for('admin_product_edit', product_id=product.id) }}"
+                                   class="btn ghost"
+                                   style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+                                    Edit
+                                </a>
+
+                                <!-- DELETE BUTTON FIXED -->
+                                <form method="POST"
+                                      action="{{ url_for('admin_product_delete', product_id=product.id) }}"
+                                      style="display:inline;">
+                                      
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                    <button type="submit"
+                                            class="btn ghost"
+                                            style="padding: 0.45rem 1rem; font-size: 0.85rem; color: var(--danger);"
+                                            onclick="return confirm('Are you sure you want to delete this product?')">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:2rem;">No products found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- PAGINATION -->
+                {% if pagination.pages > 1 %}
+                <div class="pagination">
+
+                    {% if pagination.has_prev %}
+                    <a href="{{ url_for('admin_products', page=pagination.prev_num) }}">« Previous</a>
+                    {% endif %}
+
+                    {% for pg in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if pg %}
+                            {% if pg == pagination.page %}
+                                <span class="current">{{ pg }}</span>
+                            {% else %}
+                                <a href="{{ url_for('admin_products', page=pg) }}">{{ pg }}</a>
+                            {% endif %}
+                        {% else %}
+                        <span>…</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <a href="{{ url_for('admin_products', page=pagination.next_num) }}">Next »</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+function uploadImage() {
+    const fileInput = document.getElementById('image-upload');
+    const statusDiv = document.getElementById('upload-status');
+    const urlInput = document.getElementById('product-image-url');
+
+    if (!fileInput.files[0]) {
+        statusDiv.innerHTML = '<span style="color: var(--danger);">Please select a file first.</span>';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    // CSRF FIX
+    const csrfToken = document.querySelector('input[name="csrf_token"]');
+
+    if (csrfToken) {
+        formData.append('csrf_token', csrfToken.value);
+    }
+
+    statusDiv.innerHTML = '<span style="color: var(--info);">Uploading...</span>';
+
+    fetch('/admin/products/upload', {
+        method: 'POST',
+        body: formData,
+        headers: csrfToken ? { 'X-CSRFToken': csrfToken.value } : {}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.url) {
+            // Normalize returned URL to ensure it starts with '/'
+            let u = data.url || '';
+            if (u && !u.startsWith('http') && !u.startsWith('/')) {
+                u = '/' + u;
+            }
+            urlInput.value = u;
+            statusDiv.innerHTML = '<span style="color: var(--success);">✓ Image uploaded successfully!</span>';
+            fileInput.value = '';
+        } else {
+            statusDiv.innerHTML =
+                '<span style="color: var(--danger);">✗ ' +
+                (data.error || 'Upload failed') +
+                '</span>';
+        }
+    })
+    .catch(err => {
+        statusDiv.innerHTML =
+            '<span style="color: var(--danger);">✗ Upload error: ' + err.message + '</span>';
+    });
+}
+</script>
+{% endblock %}

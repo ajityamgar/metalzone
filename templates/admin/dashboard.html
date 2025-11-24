@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - Metal Zone{% endblock %}
+{% block content %}
+<div class="admin-header">
+    <div class="container">
+        <h1 style="margin: 0 0 1rem;">Admin Dashboard</h1>
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('admin_products') }}">Products</a>
+            <a href="{{ url_for('admin_orders') }}">Orders</a>
+            <a href="{{ url_for('admin_users') }}">Users</a>
+            <a href="{{ url_for('admin_blog') }}">Blog</a>
+            <a href="{{ url_for('admin_coupons') }}">Coupons</a>
+            <a href="{{ url_for('admin_reviews') }}">Reviews</a>
+            <a href="{{ url_for('admin_messages') }}">Messages</a>
+            <a href="{{ url_for('admin_reports') }}">Reports</a>
+        </nav>
+    </div>
+</div>
+
+<section class="section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Products</h3>
+                <div class="value">{{ stats.products }}</div>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">{{ stats.active_products }} active</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="value">{{ stats.users }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <div class="value">{{ stats.orders }}</div>
+                <p style="color: var(--warning); font-size: 0.9rem; margin-top: 0.5rem;">{{ stats.pending_orders }} pending</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Sales</h3>
+                <div class="value">{{ stats.total_sales|int_rupee }}</div>
+                <p style="color: var(--success); font-size: 0.9rem; margin-top: 0.5rem;">Today: {{ stats.today_sales|int_rupee }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Low Stock Alert</h3>
+                <div class="value" style="color: var(--danger);">{{ stats.low_stock }}</div>
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">Products need restocking</p>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 2rem;">
+            <div class="panel" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="margin-bottom: 1.5rem;">Recent Orders</h2>
+                {% if recent_orders %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td><a href="{{ url_for('order_detail', order_id=order.id) }}">{{ order.order_number }}</a></td>
+                                    <td>{{ order.customer.name }}</td>
+                                    <td>{{ order.total|rupee }}</td>
+                                    <td><span style="padding: 0.25rem 0.75rem; background: #f0f0f0; border-radius: 999px; font-size: 0.8rem;">{{ order.status }}</span></td>
+                                    <td>{{ order.created_at.strftime('%b %d, %Y') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p style="text-align: center; color: #666; padding: 2rem;">No orders yet.</p>
+                {% endif %}
+            </div>
+            
+            <div class="panel" style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <h2 style="margin-bottom: 1.5rem;">Low Stock Products</h2>
+                {% if low_stock_products %}
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        {% for product in low_stock_products %}
+                            <div style="padding: 1rem; background: #fff3cd; border-radius: 8px;">
+                                <strong>{{ product.name }}</strong>
+                                <p style="color: var(--danger); margin: 0.25rem 0; font-weight: 600;">Only {{ product.stock }} left</p>
+                                <a href="{{ url_for('admin_product_edit', product_id=product.id) }}" style="color: var(--header-bg); font-size: 0.9rem;">Edit →</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p style="text-align: center; color: var(--success); padding: 2rem;">All products well stocked!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

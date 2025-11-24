@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Login - Metal Zone{% endblock %}
+{% block meta_description %}Login to your Metal Zone account to access your orders, wishlist, and exclusive deals.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+{% block content %}
+<section class="section" style="background: linear-gradient(135deg, #fff5f9 0%, #ffffff 100%); padding: 4rem 0;">
+    <div class="container narrow" style="max-width: 500px;">
+        <div class="panel" style="background: white; padding: 3rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(223, 46, 126, 0.2);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--header-bg);">Welcome Back</h1>
+                <p style="color: #666;">Login to your Metal Zone account</p>
+            </div>
+            
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-row">
+                    <label>Email or Mobile Number</label>
+                    {{ form.email(class="form-control", placeholder="Enter your email or mobile") }}
+                </div>
+                
+                <div class="form-row">
+                    <label>Password</label>
+                    {{ form.password(class="form-control", placeholder="Enter your password") }}
+                </div>
+                
+                <div class="form-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <label style="margin: 0;">
+                        {{ form.remember_me() }} Remember me
+                    </label>
+                    <a href="#" style="color: var(--header-bg); font-size: 0.9rem;">Forgot Password?</a>
+                </div>
+                
+                <button class="btn primary full" type="submit">Login</button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee;">
+                <p style="color: #666;">Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--header-bg); font-weight: 600;">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
